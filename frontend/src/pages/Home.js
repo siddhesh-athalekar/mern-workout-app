@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useWorkoutsContext } from "../hooks/useWorkoutsContext";
+import { useAuthContext } from "../hooks/useAuthContext";
 
 // components
 import WorkoutDetails from '../components/WorkoutDetails';
@@ -7,11 +8,16 @@ import WorkoutForm from "../components/WorkoutForm";
 
 const Home = () => {
   const { workouts, dispatch } = useWorkoutsContext();
+  const { user } = useAuthContext();
 
   useEffect(() => {
     const fetchWorkouts = async () => {
       try {
-        const res = await fetch('/api/workouts');
+        const res = await fetch('/api/workouts', {
+          headers: {
+            'Authorization': `Bearer ${user.token}`
+          }
+        });
         const data = await res.json();
         if(res.ok){
           console.log(data);
@@ -21,12 +27,14 @@ const Home = () => {
         console.log(err);
       }
     };
-    fetchWorkouts();
-  }, [dispatch]);
+    if(user){
+      fetchWorkouts();
+    }
+  }, [dispatch, user]);
 
   return (
-    <div classname='home'>
-      <div classname='workouts'>
+    <div className='home'>
+      <div className='workouts'>
         {workouts && workouts.map(workout => (
           <WorkoutDetails key={workout._id} workout={workout} />
         ))}
